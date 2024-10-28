@@ -7,14 +7,11 @@ import agentpy as ap
 
 
 class AgenteIntercambio(ap.Agent):
-    ### Método setup: Inicializa los agentes asignándoles sus dotaciones y su utilidad base.
-
+    # Método setup: Inicializa los agentes asignándoles sus dotaciones y su utilidad base.
     def setup(self):
         # Inicializar las dotaciones de los bienes (X, Y, Z) a partir de los parámetros del modelo.
         self.dotacion = {
-            "X": self.model.p[
-                "dotacion_X"
-            ],  # Asigna la dotación inicial de X desde los parámetros del modelo.
+            "X": self.model.p["dotacion_X"],  # Asigna la dotación inicial de X.
             "Y": self.model.p["dotacion_Y"],  # Asigna la dotación inicial de Y.
             "Z": self.model.p["dotacion_Z"],  # Asigna la dotación inicial de Z.
         }
@@ -22,33 +19,30 @@ class AgenteIntercambio(ap.Agent):
         # Establecer la utilidad inicial en 0.
         self.utilidad = 0
 
-    ### Método intercambiar: Permite que dos agentes realicen un intercambio de bienes.
-    # Args:
-    #   otro_agente (AgenteIntercambio): El agente con el que se realiza el intercambio.
-    #   bien_enviado (str): El bien que este agente envía en el intercambio.
-    #   bien_recibido (str): El bien que este agente recibe en el intercambio.
-    #   cantidad_enviada (float): La cantidad de bien_enviado que este agente ofrece.
-    #   cantidad_recibida (float): La cantidad de bien_recibido que este agente recibe.
+        # Lista de Utilidades históricas
 
-    def intercambiar(
-        self,
-        otro_agente,
-        bien_enviado,
-        bien_recibido,
-        cantidad_enviada,
-        cantidad_recibida,
-    ):
-        # Actualiza las dotaciones de bienes para ambos agentes.
-        # El agente actual pierde la cantidad de bien_enviado y gana la cantidad de bien_recibido.
-        self.dotacion[bien_enviado] -= cantidad_enviada
-        self.dotacion[bien_recibido] += cantidad_recibida
+        self.historial_utilidad = []
 
-        # El otro agente gana la cantidad de bien_enviado y pierde la cantidad de bien_recibido.
-        otro_agente.dotacion[bien_enviado] += cantidad_enviada
-        otro_agente.dotacion[bien_recibido] -= cantidad_recibida
+        # Historial de inventario: se inicializa con la dotación inicial.
+        self.historial_inventario = {
+            "X": [self.dotacion["X"]],
+            "Y": [self.dotacion["Y"]],
+            "Z": [self.dotacion["Z"]],
+        }
 
-    ### Método valorar: Devuelve las cantidades actuales de los bienes X, Y, Z que posee el agente.
-    # Este método puede ser heredado y modificado en otras clases de agentes que utilicen diferentes formas de valoración.
+    # Método para registrar el estado del inventario después de cada transacción.
+    def registrar_inventario(self):
+        # Añadir el estado actual del inventario al historial.
+        self.historial_inventario["X"].append(self.dotacion["X"])
+        self.historial_inventario["Y"].append(self.dotacion["Y"])
+        self.historial_inventario["Z"].append(self.dotacion["Z"])
+
+    # Este método accede a la utilidad del agente actual y la añade a la lista
+    def registrar_utilidad(self):
+        u = self.utilidad
+        self.historial_utilidad.append(u)
+
+    # Método valorar: Devuelve las cantidades actuales de los bienes X, Y, Z que posee el agente.
     def valorar(self):
         """Método para obtener las cantidades de los bienes X, Y, Z del agente.
         Puede ser sobrescrito en clases derivadas para diferenciar las utilidades de cada agente."""
@@ -61,7 +55,8 @@ class AgenteIntercambio(ap.Agent):
         # Retornar las cantidades de los tres bienes.
         return cantidad_x, cantidad_y, cantidad_z
 
-    ### Agente tipo 1 "Alice"
+
+#!  Agente tipo 1 "Alice"
 
 
 class Agente1(AgenteIntercambio):
